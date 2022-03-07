@@ -16,6 +16,10 @@ function verify_tls() {
 
   echo "${_tls_b64}" | base64 --decode > "${_tls_crt_file}"
 
+  cat ${_tls_crt_file}
+
+  echo "NS=${_secret_namespace} - NAME=${_secret_name} - TLS_B64=${_tls_b64}"
+
   openssl x509 -in "$_tls_crt_file" -noout -checkend $((_EXPIRATION_DAYS * 60 * 60 * 24))
   if [ $? -ne 0 ]; then
     echo "Error : asd"
@@ -23,30 +27,18 @@ function verify_tls() {
 }
 
 function find_tls_secrets() {
-  _tls_secrets=`kubectl get secrets -A -ojsonpath='{range .items[?(@.type=="kubernetes.io/tls")]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.type}{" "}{.data.tls\.crt}{"\n"}{end}'`
+  kubectl get secrets -A -ojsonpath='{range .items[?(@.type=="kubernetes.io/tls")]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.data.tls\.crt}{"\n"}{end}' > /tmp/_tls_secrets.txt
 
-  # echo "$_tls_secrets"
-  for tls_secret in "${_tls_secrets[@]}"; do
-    _ns=`echo ${tls_secret} | awk '{ print $1 }'`
-    _name=`echo ${tls_secret} | awk '{ print $2 }'`
-    _tls_b64=`echo ${tls_secret} | awk '{ print $3 }'`
-
-    echo "NS=${_ns} - NAME=${_name} - TLS_B64=${_tls_b64}"
-  done
+  echo "/tmp/_tls_secrets.txt"
 }
 
 
 function main() {
   set_job "tls_verify"
   create_metric "tls_infos" "gauge" "Information about TLS certs"
-  find_tls_secrets
-  # for tls_secret in "${_tls_secrets[@]}"; do
-  #   _ns=`echo ${tls_secret} | awk '{ print $1 }'`
-  #   _name=`echo ${tls_secret} | awk '{ print $2 }'`
-  #   _tls_b64=`echo ${tls_secret} | awk '{ print $3 }'`
-
-  #   echo "NS=${_ns} - NAME=${_name} - TLS_B64=${_tls_b64}"
-  # done
+  cat `find_tls_secrets` | while read _ns _name _tls_b64; do
+    verify_tls "$_ns" "$_name" "${_tls_b64}"
+  done
 }
 
 main
