@@ -47,6 +47,7 @@ function main() {
   cat `find_tls_secrets` | while read _ns _name _tls_b64; do
     verify_tls "$_ns" "$_name" "${_tls_b64}"
   done
+  push_metrics
 }
 
 main
