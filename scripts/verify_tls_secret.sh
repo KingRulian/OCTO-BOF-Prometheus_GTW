@@ -15,15 +15,18 @@ function verify_tls() {
   _tls_crt_file="/tmp/${_secret_namespace}-${secret_name}.crt"
 
   echo "${_tls_b64}" | base64 --decode > "${_tls_crt_file}"
-
-  cat ${_tls_crt_file}
-
-  echo "NS=${_secret_namespace} - NAME=${_secret_name} - TLS_B64=${_tls_b64}"
-
-  openssl x509 -in "$_tls_crt_file" -noout -checkend $((_EXPIRATION_DAYS * 60 * 60 * 24))
+  echo "[INFO] - Verifiying cert ${_secret_namespace}/${_secret_name} ..."
+  openssl x509 -in "$_tls_crt_file" -noout -checkend "0"
   if [ $? -ne 0 ]; then
-    echo "Error : asd"
+    echo "[ALERT] - Cert ${_secret_namespace}/${_secret_name} is expired"
+    return
   fi
+  openssl x509 -in "$_tls_crt_file" -noout -checkend "$((_EXPIRATION_DAYS * 60 * 60 * 24))"
+  if [ $? -ne 0 ]; then
+    echo "[ALERT] - Cert ${_secret_namespace}/${_secret_name} will expired in less than $_EXPIRATION_DAYS days"
+    return
+  fi
+  echo "[INFO] - Cert ${_secret_namespace}/${_secret_name} is OK"
 }
 
 function find_tls_secrets() {
