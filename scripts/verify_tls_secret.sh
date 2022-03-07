@@ -19,14 +19,19 @@ function verify_tls() {
   openssl x509 -in "$_tls_crt_file" -noout -checkend "0"
   if [ $? -ne 0 ]; then
     echo "[ALERT] - Cert ${_secret_namespace}/${_secret_name} is expired"
+    add_metrics "tls_infos" "-1" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"expired\"
     return
   fi
   openssl x509 -in "$_tls_crt_file" -noout -checkend "$((_EXPIRATION_DAYS * 60 * 60 * 24))"
   if [ $? -ne 0 ]; then
     echo "[ALERT] - Cert ${_secret_namespace}/${_secret_name} will expired in less than $_EXPIRATION_DAYS days"
+    add_metrics "tls_infos" "#TODO" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"expire_soon\"
+
     return
   fi
   echo "[INFO] - Cert ${_secret_namespace}/${_secret_name} is OK"
+  add_metrics "tls_infos" "#TODO" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"healthy\"
+
 }
 
 function find_tls_secrets() {
@@ -42,6 +47,7 @@ function main() {
   cat `find_tls_secrets` | while read _ns _name _tls_b64; do
     verify_tls "$_ns" "$_name" "${_tls_b64}"
   done
+  push_metrics
 }
 
 main

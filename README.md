@@ -17,3 +17,9 @@ C'est une tache cronjob qui lancera notre script.
   - [x] 1 qui expire (<30 jours)
   - [x] 1 qui expire dans longtemps
 - [ ] Creation du cronjob
+
+
+## Metrics
+
+tls_infos{name=,status=,}expirate_in
+tls_extras{server_name=,expiration_date=,begin_date=}=1
