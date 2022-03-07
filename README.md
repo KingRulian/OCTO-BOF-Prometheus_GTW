@@ -12,7 +12,8 @@ C'est une tache cronjob qui lancera notre script.
   - [ ] Prom GTW
   - [ ] Prometheus
   - [ ] Grafana
-- [ ] Creation des secrets TLS
-  - [ ] 3 qui expirent (5, 10, 15 jours)
-  - [ ] 3 qui expirent dans 3 ans
+- [x] Creation des secrets TLS
+  - [x] 1 qui est expire 
+  - [x] 1 qui expire (<30 jours)
+  - [x] 1 qui expire dans longtemps
 - [ ] Creation du cronjob
