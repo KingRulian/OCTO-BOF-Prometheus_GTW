@@ -31,3 +31,4 @@ openssl req \
 -batch
 
 ca=`cat certs/ca2.crt`
+ca-key=`cat certs/ca2.crt`
