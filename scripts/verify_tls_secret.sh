@@ -14,6 +14,8 @@ function verify_tls() {
 
   _tls_crt_file="/tmp/${_secret_namespace}-${secret_name}.crt"
 
+  _certAge=get_tls_expiration_days "$_tls_crt_file"
+
   echo "${_tls_b64}" | base64 --decode > "${_tls_crt_file}"
   echo "[INFO] - Verifiying cert ${_secret_namespace}/${_secret_name} ..."
   openssl x509 -in "$_tls_crt_file" -noout -checkend "0"
@@ -25,12 +27,12 @@ function verify_tls() {
   openssl x509 -in "$_tls_crt_file" -noout -checkend "$((_EXPIRATION_DAYS * 60 * 60 * 24))"
   if [ $? -ne 0 ]; then
     echo "[ALERT] - Cert ${_secret_namespace}/${_secret_name} will expired in less than $_EXPIRATION_DAYS days"
-    add_metrics "tls_infos" "#TODO" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"expire_soon\"
+    add_metrics "tls_infos" "$_certAge" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"expire_soon\"
 
     return
   fi
   echo "[INFO] - Cert ${_secret_namespace}/${_secret_name} is OK"
-  add_metrics "tls_infos" "#TODO" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"healthy\"
+  add_metrics "tls_infos" "$_certAge" namespace=\"${_secret_namespace}\",name=\"${_secret_name}\",status=\"healthy\"
 
 }
 
@@ -40,6 +42,15 @@ function find_tls_secrets() {
   echo "/tmp/_tls_secrets.txt"
 }
 
+function get_tls_expiration_days() {
+  _tls_crt_file="$1"
+
+  certExpirationDate=$(openssl x509 -in $_tls_crt_file -enddate -noout )
+  certExpirationDate=${certExpirationDate#*=}
+  certExpirationDate=${certExpirationDate% GMT}
+  _certAge="$(getDeltaTimeDays "${certExpirationDate}")" # In days
+  echo "_certAge"
+}
 
 function main() {
   set_job "tls_verify"
