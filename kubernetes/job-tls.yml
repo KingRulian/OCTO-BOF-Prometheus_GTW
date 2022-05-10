@@ -1,0 +1,22 @@
+# https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: tls-check
+  namespace: default
+spec:
+  schedule: "*/2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: jobname
+            image: galynea/tls-check:v1.0.0
+            env:
+              - name: PUSH_GTW_ENDPOINT
+                value: pushgateway-service.monitoring.svc.cluster.local:8120
+
+          restartPolicy: OnFailure
+          serviceAccountName: job-tls
+---

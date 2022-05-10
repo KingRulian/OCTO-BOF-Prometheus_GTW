@@ -30,5 +30,5 @@ openssl req \
 -days 30 \
 -batch
 
-ca=`cat certs/ca2.crt`
-ca-key=`cat certs/ca2.crt`
+cat certs/ca2.crt
+cat certs/ca2.crt

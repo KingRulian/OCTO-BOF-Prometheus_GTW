@@ -1,0 +1,29 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+   name: job-tls
+rules:
+- apiGroups: ["*"]
+  resources:
+  - secrets
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: job-tls
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: job-tls
+subjects:
+- kind: ServiceAccount
+  name: job-tls
+  namespace: default
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: job-tls
+  namespace: default
